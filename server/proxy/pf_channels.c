@@ -295,8 +295,8 @@ void pf_server_channels_free(pServerContext* ps)
 		/* close passthrough channels */
 		size_t i;
 
-		for (i = 0; i < ps->pdata->config->PassthroughCount; i++)
-			WTSVirtualChannelClose(ps->vc_handles[i]);
+		//for (i = 0; i < ps->pdata->config->PassthroughCount; i++)
+		//	WTSVirtualChannelClose(ps->vc_handles[i]);
 	}
 
 	pf_modules_run_hook(HOOK_TYPE_SERVER_CHANNELS_FREE, ps->pdata);
