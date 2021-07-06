@@ -18,6 +18,7 @@ set(PLUGIN_NAME "proxy-external-target-resolve-plugin")
 
 add_library(${PLUGIN_NAME} MODULE
 	external-target-resolve.c
+	../../pf_config.c
 )
 
 set_target_properties(${PLUGIN_NAME} PROPERTIES PREFIX "")

@@ -22,6 +22,7 @@
 
 #include "pf_log.h"
 #include "modules_api.h"
+#include "pf_config.h"
 
 #define TAG MODULE_TAG("external-target-resolve")
 
@@ -99,35 +100,16 @@ static BOOL server_fetch_target_addr(proxyData* pdata, void* param)
         waitpid(child_pid, &returnStatus, 0);
 
         // read result
-        char externalResult[128];
+        char externalResult[8192];
         read(fd[0], externalResult, sizeof(externalResult));
 
-        WLog_INFO(TAG, "Routing for [%s]\\[%s]: [%s]", domain, username, externalResult);
-        int len = strlen(externalResult);
-        if (len > 0) {
-          result->target_address = _strdup(externalResult);
+        proxyConfig* cfg = pf_server_config_load_buffer(externalResult);
+        if (cfg) {
+          pdata->config = cfg;
           result->fetch_method = PROXY_FETCH_TARGET_USE_CUSTOM_ADDR;
-          char* colon = strchr(result->target_address, ':');
-
-          if (colon)
-          {
-            unsigned long p = strtoul(colon + 1, NULL, 10);
-
-            if (p > USHRT_MAX)
-            {
-              free(result->target_address);
-              result->target_address = NULL;
-            }
-            else
-            {
-              result->target_port = (DWORD)p;
-              *colon = '\0';
-            }
-          }
-          else
-          {
-            result->target_port = 3389;
-          }
+          result->target_address = _strdup(pdata->config->TargetHost);
+          result->target_port = pdata->config->TargetPort;
+          WLog_INFO(TAG, "Routing for [%s]\\[%s]: [%s]:[%d]", domain, username, result->target_address, result->target_port);
         }
       } else { 
         // child process
@@ -149,8 +131,12 @@ static BOOL server_fetch_target_addr(proxyData* pdata, void* param)
         // start excternal script
         fp = popen(external_script_fullpath, "r");
         if (fp != NULL) {
-          char externalResult[128];
-          fgets(externalResult, sizeof(externalResult), fp);
+          char externalResult[16384];
+          int pos = 0, max = sizeof(externalResult) - 1;
+          while(pos <= max && fgets(externalResult + pos, max - pos, fp)) {
+            pos += strlen(externalResult + pos);
+          }
+
           write(fd[1], externalResult, strlen(externalResult) + 1);
           pclose(fp);
         }

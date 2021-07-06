@@ -1,0 +1,83 @@
+#!/bin/bash
+Username="${FreeRDP_Username:-}"
+ProxyUsername="${FreeRDP_ProxyUsername:-}"
+GatewayUsername="${FreeRDP_GatewayUsername:-}"
+Domain="${FreeRDP_Domain:-}"
+GatewayDomain="${FreeRDP_GatewayDomain:-}"
+Password="${FreeRDP_Password:-}"
+ProxyPassword="${FreeRDP_ProxyPassword:-}"
+GatewayPassword="${FreeRDP_GatewayPassword:-}"
+ClientHostname="${FreeRDP_ClientHostname:-}"
+ProxyHostname="${FreeRDP_ProxyHostname:-}"
+GatewayHostname="${FreeRDP_GatewayHostname:-}"
+RoutingToken="${FreeRDP_RoutingToken:-}"
+
+DEBUG=0
+
+if [[ "$DEBUG" == "1" ]]; then
+  printf "Username=$Username\n" >&2 
+  printf "ProxyUsername=$ProxyUsername\n" >&2 
+  printf "GatewayUsername=$GatewayUsername\n" >&2 
+  printf "Domain=$Domain\n" >&2 
+  printf "GatewayDomain=$GatewayDomain\n" >&2 
+  printf "Password=$Password\n" >&2 
+  printf "ProxyPassword=$ProxyPassword\n" >&2 
+  printf "GatewayPassword=$GatewayPassword\n" >&2 
+  printf "ClientHostname=$ClientHostname\n" >&2 
+  printf "ProxyHostname=$ProxyHostname\n" >&2 
+  printf "GatewayHostname=$GatewayHostname\n" >&2 
+  printf "RoutingToken=$RoutingToken\n" >&2
+fi
+
+TARGET_IP=CustomHost
+TARGET_PORT=3389
+
+cat <<EOF
+[Server]
+Host = NONE
+Port = NONE
+
+[Target]
+FixedTarget = TRUE
+Host = $TARGET_IP
+Port = $TARGET_PORT
+
+[Input]
+Mouse = TRUE
+Keyboard = TRUE
+
+[Security]
+ServerTlsSecurity = TRUE
+ServerRdpSecurity = FALSE
+ClientTlsSecurity = TRUE
+ClientRdpSecurity = FALSE
+ClientNlaSecurity = TRUE
+ClientAllowFallbackToTls = TRUE
+
+[Channels]
+GFX = TRUE
+DisplayControl = TRUE
+Clipboard = TRUE
+AudioOutput = TRUE
+RemoteApp = TRUE
+
+; a list of comma seperated static channels that will be proxied
+; "rdpdr": [MS-RDPEFS] support for remote/shared file system
+StaticPassthrough = "rdpdr"
+
+; a list of comma seperated dynamic channels that will be proxied
+; "PNPDR": [MS-RDPEPNP] support for plug'n'play devices 
+; "FileRedirectorChannel": [MS-RDPEPNP] passthrough file redirection for PNPDR
+; "URBDRC": [MS-RDPEUSB] support for usb redirection; requires PNPDR
+; "XPSRD": [MS-RDPEXPS] support for printers; available with rdpdr
+; "RDCamera_Device_Enumerator": [MS-RDPECAM] support for remote video capture devices
+; "RDCamera_Device_0": [MS-RDPECAM]
+DynamicPassthrough = ""
+
+[Clipboard]
+TextOnly = FALSE
+MaxTextLength = 10 # 0 for no limit.
+
+[GFXSettings]
+DecodeGFX = TRUE
+EOF
