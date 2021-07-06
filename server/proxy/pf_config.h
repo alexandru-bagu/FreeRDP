@@ -96,7 +96,8 @@ extern "C"
 };
 #endif
 
-proxyConfig* pf_server_config_load(const char* path);
+proxyConfig* pf_server_config_load_file(const char* path);
+proxyConfig* pf_server_config_load_buffer(const char* path);
 void pf_server_config_print(proxyConfig* config);
 void pf_server_config_free(proxyConfig* config);
 
