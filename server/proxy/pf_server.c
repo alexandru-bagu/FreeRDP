@@ -378,7 +378,9 @@ static BOOL pf_server_initialize_peer_connection(freerdp_peer* peer)
 	proxy_data_set_server_context(pdata, ps);
 
 	pdata->module = server->module;
-	config = pdata->config = server->config;
+	if (!pf_config_clone((proxyConfig**)&pdata->config, (const proxyConfig*)server->config))
+		return FALSE;
+  config = pdata->config;
 
 	/* currently not supporting GDI orders */
 	ZeroMemory(settings->OrderSupport, 32);

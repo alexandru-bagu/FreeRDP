@@ -260,6 +260,9 @@ void proxy_data_free(proxyData* pdata)
 	if (pdata->pc)
 		freerdp_client_context_free(&pdata->pc->context);
 
+	if (pdata->config)
+		free((proxyConfig*)pdata->config);
+
 	free(pdata);
 }
 
