@@ -59,28 +59,9 @@
 
 #define TAG CLIENT_TAG("windows")
 
-static BOOL wf_create_console(void)
+static BOOL wf_has_console(void)
 {
-#if defined(WITH_WIN_CONSOLE)
-	if (!AttachConsole(ATTACH_PARENT_PROCESS))
-		return FALSE;
-
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr);
-	clearerr(stdout);
-	clearerr(stderr);
-	fflush(stdout);
-	fflush(stderr);
-
-	freopen("CONIN$", "r", stdin);
-	clearerr(stdin);
-
-	WLog_INFO(TAG, "Debug console created.");
-
-	return TRUE;
-#else
-	return FALSE;
-#endif
+	return GetConsoleWindow() != 0;
 }
 
 static BOOL wf_end_paint(rdpContext* context)
@@ -446,24 +427,46 @@ static BOOL wf_authenticate_raw(freerdp* instance, const char* title, char** use
 	dwFlags = CREDUI_FLAGS_DO_NOT_PERSIST | CREDUI_FLAGS_EXCLUDE_CERTIFICATES;
 
 	if (username && *username)
-		strncpy(UserName, *username, CREDUI_MAX_USERNAME_LENGTH);
-	if (wfc->isConsole)
-		status = CredUICmdLinePromptForCredentialsA(
-		    title, NULL, 0, UserName, CREDUI_MAX_USERNAME_LENGTH + 1, Password,
-		    CREDUI_MAX_PASSWORD_LENGTH + 1, &fSave, dwFlags);
-	else
-		status = CredUIPromptForCredentialsA(&wfUiInfo, title, NULL, 0, UserName,
-		                                     CREDUI_MAX_USERNAME_LENGTH + 1, Password,
-		                                     CREDUI_MAX_PASSWORD_LENGTH + 1, &fSave, dwFlags);
-
-	if (status != NO_ERROR)
 	{
-		WLog_ERR(TAG, "CredUIPromptForCredentials unexpected status: 0x%08lX", status);
-		return FALSE;
+		strncpy(UserName, *username, CREDUI_MAX_USERNAME_LENGTH);
+		strncpy(User, UserName, CREDUI_MAX_USERNAME_LENGTH);
 	}
 
-	status = CredUIParseUserNameA(UserName, User, sizeof(User), Domain, sizeof(Domain));
-	// WLog_ERR(TAG, "User: %s Domain: %s Password: %s", User, Domain, Password);
+	if (password && *password)
+	{
+		strncpy(Password, *password, CREDUI_MAX_PASSWORD_LENGTH);
+	}
+
+	if (domain && *domain)
+	{
+		strncpy(Domain, *domain, CREDUI_MAX_DOMAIN_TARGET_LENGTH);
+	}
+
+	if (!(username && *username && password && *password))
+	{
+		if (wfc->isConsole)
+			status = CredUICmdLinePromptForCredentialsA(
+			    title, NULL, 0, UserName, CREDUI_MAX_USERNAME_LENGTH + 1, Password,
+			    CREDUI_MAX_PASSWORD_LENGTH + 1, &fSave, dwFlags);
+		else
+			status = CredUIPromptForCredentialsA(&wfUiInfo, title, NULL, 0, UserName,
+			                                     CREDUI_MAX_USERNAME_LENGTH + 1, Password,
+			                                     CREDUI_MAX_PASSWORD_LENGTH + 1, &fSave, dwFlags);
+
+		if (status != NO_ERROR)
+		{
+			WLog_ERR(TAG, "CredUIPromptForCredentials unexpected status: 0x%08lX", status);
+			return FALSE;
+		}
+
+		status = CredUIParseUserNameA(UserName, User, CREDUI_MAX_USERNAME_LENGTH, Domain,
+		                              CREDUI_MAX_DOMAIN_TARGET_LENGTH);
+		if (status != NO_ERROR)
+		{
+			WLog_ERR(TAG, "Failed to parse UserName: %s into User: %s Domain: %s", UserName, User, Domain);
+			return FALSE;
+		}
+	}
 	*username = _strdup(User);
 
 	if (!(*username))
@@ -1031,7 +1034,7 @@ static BOOL wfreerdp_client_new(freerdp* instance, rdpContext* context)
 
 	// AttachConsole and stdin do not work well.
 	// Use GUI input dialogs instead of command line ones.
-	wfc->isConsole = wf_create_console();
+	wfc->isConsole = wf_has_console();
 
 	if (!(wfreerdp_client_global_init()))
 		return FALSE;
