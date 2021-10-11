@@ -59,28 +59,9 @@
 
 #define TAG CLIENT_TAG("windows")
 
-static BOOL wf_create_console(void)
+static BOOL wf_has_console(void)
 {
-#if defined(WITH_WIN_CONSOLE)
-	if (!AttachConsole(ATTACH_PARENT_PROCESS))
-		return FALSE;
-
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr);
-	clearerr(stdout);
-	clearerr(stderr);
-	fflush(stdout);
-	fflush(stderr);
-
-	freopen("CONIN$", "r", stdin);
-	clearerr(stdin);
-
-	WLog_INFO(TAG, "Debug console created.");
-
-	return TRUE;
-#else
-	return FALSE;
-#endif
+	return GetConsoleWindow() != 0;
 }
 
 static BOOL wf_end_paint(rdpContext* context)
@@ -1031,7 +1012,7 @@ static BOOL wfreerdp_client_new(freerdp* instance, rdpContext* context)
 
 	// AttachConsole and stdin do not work well.
 	// Use GUI input dialogs instead of command line ones.
-	wfc->isConsole = wf_create_console();
+	wfc->isConsole = wf_has_console();
 
 	if (!(wfreerdp_client_global_init()))
 		return FALSE;

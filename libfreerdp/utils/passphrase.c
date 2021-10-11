@@ -26,10 +26,27 @@
 
 #ifdef _WIN32
 
+#include <stdio.h>
+
 char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int from_stdin)
 {
-	errno = ENOSYS;
-	return NULL;
+  if(from_stdin)
+  {
+    printf ("%s\n", prompt);
+    size_t read_cnt = 0;
+    while(read_cnt < bufsiz - 1 && (*(buf + read_cnt) = getchar()))
+    {   
+      if(*(buf + read_cnt) == '\n') {
+        *(buf + read_cnt) = '\0';
+      }
+    }
+    return buf;
+  }
+  else
+  {
+    errno = ENOSYS;
+    return NULL;
+  }
 }
 
 #elif !defined(ANDROID)

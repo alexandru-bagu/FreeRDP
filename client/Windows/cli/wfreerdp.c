@@ -142,3 +142,11 @@ out:
 	LocalFree(args);
 	return ret;
 }
+
+#ifdef WITH_WIN_CONSOLE
+#pragma comment(linker, "/subsystem:\"console\"")
+int main()
+{
+	return WinMain(NULL, NULL, NULL, 0);
+}
+#endif
