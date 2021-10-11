@@ -26,8 +26,80 @@
 
 #ifdef _WIN32
 
+#include <stdio.h>
+#include <io.h>
+
+char get_piped_char(int from_console)
+{
+	if (from_console)
+	{
+		return _getch();
+	}
+	else
+	{
+		char chr;
+		if (scanf("%c", &chr) && !feof(stdin))
+			return chr;
+	}
+	return 0;
+}
+
 char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int from_stdin)
 {
+	const char CTRLC = 3;
+	const char BACKSPACE = '\b';
+	const char NEWLINE = '\n';
+	const char CARRIAGERETURN = '\r';
+	const char SHOW_ASTERISK = TRUE;
+
+	char isTty = _isatty(_fileno(stdin));
+	if (from_stdin)
+	{
+		printf("%s ", prompt);
+		size_t read_cnt = 0, chr;
+		while (read_cnt < bufsiz - 1 && (chr = get_piped_char(isTty)) && chr != NEWLINE &&
+		       chr != CARRIAGERETURN)
+		{
+			if (chr == BACKSPACE)
+			{
+				if (read_cnt > 0)
+				{
+					if (SHOW_ASTERISK)
+						printf("\b \b");
+					read_cnt--;
+				}
+			}
+			else if (chr == CTRLC)
+			{
+				if (read_cnt != 0)
+				{
+					while (read_cnt > 0)
+					{
+						if (SHOW_ASTERISK)
+							printf("\b \b");
+						read_cnt--;
+					}
+				}
+				else
+				{
+					goto fail;
+				}
+			}
+			else
+			{
+				*(buf + read_cnt) = chr;
+				read_cnt++;
+				if (SHOW_ASTERISK)
+				{
+					printf("*");
+				}
+			}
+		}
+		*(buf + read_cnt) = '\0';
+		printf("\n");
+		return buf;
+	}
+fail:
 	errno = ENOSYS;
 	return NULL;
 }
