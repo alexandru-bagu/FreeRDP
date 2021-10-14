@@ -321,7 +321,7 @@ static VideoFrame* VideoFrame_new(VideoClientContextPriv* priv, PresentationCont
 	frame->h = surface->alignedHeight;
 	frame->scanline = surface->scanline;
 
-	frame->surfaceData = BufferPool_Take(priv->surfacePool, frame->scanline * frame->h);
+	frame->surfaceData = BufferPool_Take(priv->surfacePool, frame->scanline * frame->h * 1ull);
 	if (!frame->surfaceData)
 		goto fail;
 
@@ -722,7 +722,7 @@ static void video_timer(VideoClientContext* video, UINT64 now)
 	presentation = frame->presentation;
 
 	priv->publishedFrames++;
-	memcpy(presentation->surface->data, frame->surfaceData, frame->scanline * frame->h);
+	memcpy(presentation->surface->data, frame->surfaceData, frame->scanline * frame->h * 1ull);
 
 	WINPR_ASSERT(video->showSurface);
 	video->showSurface(video, presentation->surface, presentation->ScaledWidth,
