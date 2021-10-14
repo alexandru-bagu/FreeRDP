@@ -32,12 +32,13 @@ struct _VideoSurface
 {
 	UINT32 x, y, w, h;
 	BYTE* data;
+	DWORD format;
 };
 
 typedef void (*pcVideoTimer)(VideoClientContext* video, UINT64 now);
 typedef void (*pcVideoSetGeometry)(VideoClientContext* video, GeometryClientContext* geometry);
-typedef VideoSurface* (*pcVideoCreateSurface)(VideoClientContext* video, BYTE* data, UINT32 x,
-                                              UINT32 y, UINT32 width, UINT32 height);
+typedef VideoSurface* (*pcVideoCreateSurface)(VideoClientContext* video, BYTE* data, DWORD format,
+                                              UINT32 x, UINT32 y, UINT32 width, UINT32 height);
 typedef BOOL (*pcVideoShowSurface)(VideoClientContext* video, const VideoSurface* surface);
 typedef BOOL (*pcVideoDeleteSurface)(VideoClientContext* video, VideoSurface* surface);
 

@@ -57,8 +57,8 @@ void gdi_video_geometry_uninit(rdpGdi* gdi, GeometryClientContext* geom)
 {
 }
 
-static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, BYTE* data, UINT32 x,
-                                           UINT32 y, UINT32 width, UINT32 height)
+static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, BYTE* data, DWORD format,
+                                           UINT32 x, UINT32 y, UINT32 width, UINT32 height)
 {
 	rdpGdi* gdi;
 	gdiVideoSurface* ret;
@@ -73,7 +73,8 @@ static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, BYTE* data
 	if (!ret)
 		return NULL;
 
-	bpp = GetBytesPerPixel(gdi->dstFormat);
+	bpp = GetBytesPerPixel(format);
+	ret->base.format = format;
 	ret->base.data = data;
 	ret->base.x = x;
 	ret->base.y = y;
@@ -137,7 +138,7 @@ static BOOL gdiVideoShowSurface(VideoClientContext* video, const VideoSurface* s
 		WINPR_ASSERT(gdi->primary);
 		WINPR_ASSERT(gdi->primary->hdc);
 		if (!freerdp_image_copy(gdi->primary_buffer, gdi->primary->hdc->format, gdi->stride, nXDst,
-		                        nYDst, width, height, surface->data, gdi->primary->hdc->format,
+		                        nYDst, width, height, surface->data, surface->format,
 		                        gdiSurface->scanline, 0, 0, NULL, FREERDP_FLIP_NONE))
 			goto fail;
 

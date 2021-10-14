@@ -31,8 +31,8 @@ typedef struct
 	XImage* image;
 } xfVideoSurface;
 
-static VideoSurface* xfVideoCreateSurface(VideoClientContext* video, BYTE* data, UINT32 x, UINT32 y,
-                                          UINT32 width, UINT32 height)
+static VideoSurface* xfVideoCreateSurface(VideoClientContext* video, BYTE* data, DWORD format,
+                                          UINT32 x, UINT32 y, UINT32 width, UINT32 height)
 {
 	xfContext* xfc = (xfContext*)video->custom;
 	xfVideoSurface* ret = calloc(1, sizeof(*ret));
@@ -40,6 +40,7 @@ static VideoSurface* xfVideoCreateSurface(VideoClientContext* video, BYTE* data,
 	if (!ret)
 		return NULL;
 
+	ret->base.format = format;
 	ret->base.data = data;
 	ret->base.x = x;
 	ret->base.y = y;

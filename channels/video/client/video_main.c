@@ -132,6 +132,7 @@ struct _PresentationContext
 	volatile LONG refCounter;
 	BYTE* surfaceData;
 	VideoSurface* surface;
+	DWORD format;
 };
 
 static void PresentationContext_unref(PresentationContext* presentation);
@@ -219,6 +220,7 @@ static PresentationContext* PresentationContext_new(VideoClientContext* video, B
 	if (!ret)
 		return NULL;
 
+	ret->format = PIXEL_FORMAT_BGRX32;
 	ret->video = video;
 	ret->PresentationId = PresentationId;
 
@@ -244,7 +246,7 @@ static PresentationContext* PresentationContext_new(VideoClientContext* video, B
 		goto fail;
 	}
 
-	ret->surface = video->createSurface(video, ret->surfaceData, x, y, width, height);
+	ret->surface = video->createSurface(video, ret->surfaceData, ret->format, x, y, width, height);
 	if (!ret->surface)
 	{
 		WLog_ERR(TAG, "unable to create surface");
@@ -793,7 +795,6 @@ static UINT video_VideoData(VideoClientContext* context, const TSMM_VIDEO_DATA* 
 	VideoClientContextPriv* priv;
 	PresentationContext* presentation;
 	int status;
-	const UINT32 format = PIXEL_FORMAT_BGRX32;
 
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(data);
@@ -845,10 +846,11 @@ static UINT video_VideoData(VideoClientContext* context, const TSMM_VIDEO_DATA* 
 			int dropped = 0;
 
 			/* if the frame is to be published in less than 10 ms, let's consider it's now */
-			status = avc420_decompress(
-			    h264, Stream_Pointer(presentation->currentSample),
-			    Stream_Length(presentation->currentSample), presentation->surfaceData, format, 0,
-			    presentation->SourceWidth, presentation->SourceHeight, &rect, 1);
+			status =
+			    avc420_decompress(h264, Stream_Pointer(presentation->currentSample),
+			                      Stream_Length(presentation->currentSample),
+			                      presentation->surfaceData, presentation->format, 0,
+			                      presentation->SourceWidth, presentation->SourceHeight, &rect, 1);
 
 			if (status < 0)
 				return CHANNEL_RC_OK;
@@ -899,10 +901,11 @@ static UINT video_VideoData(VideoClientContext* context, const TSMM_VIDEO_DATA* 
 				return CHANNEL_RC_NO_MEMORY;
 			}
 
-			status = avc420_decompress(h264, Stream_Pointer(presentation->currentSample),
-			                           Stream_Length(presentation->currentSample),
-			                           frame->surfaceData, format, 0, presentation->SourceWidth,
-			                           presentation->SourceHeight, &rect, 1);
+			status =
+			    avc420_decompress(h264, Stream_Pointer(presentation->currentSample),
+			                      Stream_Length(presentation->currentSample), frame->surfaceData,
+			                      presentation->format, 0, presentation->SourceWidth,
+			                      presentation->SourceHeight, &rect, 1);
 
 			if (status < 0)
 				return CHANNEL_RC_OK;
