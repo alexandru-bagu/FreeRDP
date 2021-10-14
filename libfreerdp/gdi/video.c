@@ -19,6 +19,8 @@
 
 #include "../core/update.h"
 
+#include <winpr/assert.h>
+
 #include <freerdp/client/geometry.h>
 #include <freerdp/client/video.h>
 #include <freerdp/gdi/gdi.h>
@@ -36,11 +38,17 @@ typedef struct
 
 void gdi_video_geometry_init(rdpGdi* gdi, GeometryClientContext* geom)
 {
+	WINPR_ASSERT(gdi);
+	WINPR_ASSERT(geom);
+
 	gdi->geometry = geom;
 
 	if (gdi->video)
 	{
 		VideoClientContext* video = gdi->video;
+
+		WINPR_ASSERT(video);
+		WINPR_ASSERT(video->setGeometry);
 		video->setGeometry(video, gdi->geometry);
 	}
 }
@@ -52,10 +60,16 @@ void gdi_video_geometry_uninit(rdpGdi* gdi, GeometryClientContext* geom)
 static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, BYTE* data, UINT32 x,
                                            UINT32 y, UINT32 width, UINT32 height)
 {
-	rdpGdi* gdi = (rdpGdi*)video->custom;
-	gdiVideoSurface* ret = calloc(1, sizeof(*ret));
+	rdpGdi* gdi;
+	gdiVideoSurface* ret;
 	UINT32 bpp;
 
+	WINPR_ASSERT(video);
+
+	gdi = (rdpGdi*)video->custom;
+	WINPR_ASSERT(gdi);
+
+	ret = calloc(1, sizeof(gdiVideoSurface));
 	if (!ret)
 		return NULL;
 
@@ -78,13 +92,24 @@ static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, BYTE* data
 	return &ret->base;
 }
 
-static BOOL gdiVideoShowSurface(VideoClientContext* video, VideoSurface* surface)
+static BOOL gdiVideoShowSurface(VideoClientContext* video, const VideoSurface* surface)
 {
 	BOOL rc = FALSE;
-	rdpGdi* gdi = (rdpGdi*)video->custom;
-	gdiVideoSurface* gdiSurface = (gdiVideoSurface*)surface;
+	rdpGdi* gdi;
+	const gdiVideoSurface* gdiSurface = (const gdiVideoSurface*)surface;
 	RECTANGLE_16 surfaceRect;
-	rdpUpdate* update = gdi->context->update;
+	rdpUpdate* update;
+
+	WINPR_ASSERT(video);
+	WINPR_ASSERT(surface);
+
+	gdi = (rdpGdi*)video->custom;
+	WINPR_ASSERT(gdi);
+	WINPR_ASSERT(gdi->context);
+
+	update = gdi->context->update;
+	WINPR_ASSERT(update);
+
 	surfaceRect.left = surface->x;
 	surfaceRect.top = surface->y;
 	surfaceRect.right = surface->x + surface->w;
@@ -108,6 +133,9 @@ static BOOL gdiVideoShowSurface(VideoClientContext* video, VideoSurface* surface
 		                          ? surface->h
 		                          : (UINT32)gdi->height - surface->y;
 
+		WINPR_ASSERT(gdi->primary_buffer);
+		WINPR_ASSERT(gdi->primary);
+		WINPR_ASSERT(gdi->primary->hdc);
 		if (!freerdp_image_copy(gdi->primary_buffer, gdi->primary->hdc->format, gdi->stride, nXDst,
 		                        nYDst, width, height, surface->data, gdi->primary->hdc->format,
 		                        gdiSurface->scanline, 0, 0, NULL, FREERDP_FLIP_NONE))
@@ -142,6 +170,9 @@ static BOOL gdiVideoDeleteSurface(VideoClientContext* video, VideoSurface* surfa
 }
 void gdi_video_control_init(rdpGdi* gdi, VideoClientContext* video)
 {
+	WINPR_ASSERT(gdi);
+	WINPR_ASSERT(video);
+
 	gdi->video = video;
 	video->custom = gdi;
 	video->createSurface = gdiVideoCreateSurface;
@@ -152,13 +183,19 @@ void gdi_video_control_init(rdpGdi* gdi, VideoClientContext* video)
 
 void gdi_video_control_uninit(rdpGdi* gdi, VideoClientContext* video)
 {
+	WINPR_ASSERT(gdi);
 	gdi->video = NULL;
 }
 
 static void gdi_video_timer(void* context, TimerEventArgs* timer)
 {
 	rdpContext* ctx = (rdpContext*)context;
-	rdpGdi* gdi = ctx->gdi;
+	rdpGdi* gdi;
+
+	WINPR_ASSERT(ctx);
+	WINPR_ASSERT(timer);
+
+	gdi = ctx->gdi;
 
 	if (gdi && gdi->video)
 		gdi->video->timer(gdi->video, timer->now);
@@ -166,10 +203,14 @@ static void gdi_video_timer(void* context, TimerEventArgs* timer)
 
 void gdi_video_data_init(rdpGdi* gdi, VideoClientContext* video)
 {
+	WINPR_ASSERT(gdi);
+	WINPR_ASSERT(gdi->context);
 	PubSub_SubscribeTimer(gdi->context->pubSub, gdi_video_timer);
 }
 
 void gdi_video_data_uninit(rdpGdi* gdi, VideoClientContext* context)
 {
+	WINPR_ASSERT(gdi);
+	WINPR_ASSERT(gdi->context);
 	PubSub_UnsubscribeTimer(gdi->context->pubSub, gdi_video_timer);
 }

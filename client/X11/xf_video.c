@@ -58,10 +58,17 @@ static VideoSurface* xfVideoCreateSurface(VideoClientContext* video, BYTE* data,
 	return &ret->base;
 }
 
-static BOOL xfVideoShowSurface(VideoClientContext* video, VideoSurface* surface)
+static BOOL xfVideoShowSurface(VideoClientContext* video, const VideoSurface* surface)
 {
-	xfVideoSurface* xfSurface = (xfVideoSurface*)surface;
-	xfContext* xfc = video->custom;
+	const xfVideoSurface* xfSurface = (const xfVideoSurface*)surface;
+	xfContext* xfc;
+
+	WINPR_ASSERT(video);
+	WINPR_ASSERT(xfSurface);
+
+	xfc = video->custom;
+	WINPR_ASSERT(xfc);
+
 #ifdef WITH_XRENDER
 
 	if (xfc->context.settings->SmartSizing || xfc->context.settings->MultiTouchGestures)
