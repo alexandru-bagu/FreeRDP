@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include <winpr/crt.h>
+#include <winpr/assert.h>
 #include <winpr/synch.h>
 #include <winpr/print.h>
 #include <winpr/stream.h>
@@ -548,14 +549,20 @@ static UINT video_control_on_data_received(IWTSVirtualChannelCallback* pChannelC
 }
 
 static UINT video_control_send_client_notification(VideoClientContext* context,
-                                                   TSMM_CLIENT_NOTIFICATION* notif)
+                                                   const TSMM_CLIENT_NOTIFICATION* notif)
 {
 	BYTE buf[100];
 	wStream* s;
-	VIDEO_PLUGIN* video = (VIDEO_PLUGIN*)context->handle;
+	VIDEO_PLUGIN* video;
 	IWTSVirtualChannel* channel;
 	UINT ret;
 	UINT32 cbSize;
+
+	WINPR_ASSERT(context);
+	WINPR_ASSERT(notif);
+
+	video = (VIDEO_PLUGIN*)context->handle;
+	WINPR_ASSERT(video);
 
 	s = Stream_New(buf, 32);
 	if (!s)
@@ -588,7 +595,13 @@ static UINT video_control_send_client_notification(VideoClientContext* context,
 	Stream_Write_UINT32(s, cbSize);
 	Stream_Free(s, FALSE);
 
+	WINPR_ASSERT(video->control_callback);
+	WINPR_ASSERT(video->control_callback->channel_callback);
+
 	channel = video->control_callback->channel_callback->channel;
+	WINPR_ASSERT(channel);
+	WINPR_ASSERT(channel->Write);
+
 	ret = channel->Write(channel, cbSize, buf, NULL);
 
 	return ret;
