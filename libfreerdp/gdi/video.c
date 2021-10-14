@@ -29,13 +29,6 @@
 
 #define TAG FREERDP_TAG("video")
 
-typedef struct
-{
-	VideoSurface base;
-	UINT32 scanline;
-	BYTE* image;
-} gdiVideoSurface;
-
 void gdi_video_geometry_init(rdpGdi* gdi, GeometryClientContext* geom)
 {
 	WINPR_ASSERT(gdi);
@@ -57,47 +50,37 @@ void gdi_video_geometry_uninit(rdpGdi* gdi, GeometryClientContext* geom)
 {
 }
 
-static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, BYTE* data, DWORD format,
-                                           UINT32 x, UINT32 y, UINT32 width, UINT32 height)
+static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, UINT32 x, UINT32 y,
+                                           UINT32 width, UINT32 height)
 {
 	rdpGdi* gdi;
-	gdiVideoSurface* ret;
-	UINT32 bpp;
+	VideoSurface* ret;
 
 	WINPR_ASSERT(video);
 
 	gdi = (rdpGdi*)video->custom;
 	WINPR_ASSERT(gdi);
 
-	ret = calloc(1, sizeof(gdiVideoSurface));
+	ret = calloc(1, sizeof(VideoSurface));
 	if (!ret)
 		return NULL;
 
-	bpp = GetBytesPerPixel(format);
-	ret->base.format = format;
-	ret->base.data = data;
-	ret->base.x = x;
-	ret->base.y = y;
-	ret->base.w = width;
-	ret->base.h = height;
-	ret->scanline = width * bpp;
-	ret->image = _aligned_malloc(ret->scanline * height * 1ULL, 16);
+	ret->format = PIXEL_FORMAT_BGRX32;
+	ret->x = x;
+	ret->y = y;
+	ret->w = width;
+	ret->h = height;
 
-	if (!ret->image)
-	{
-		WLog_ERR(TAG, "unable to create surface image");
-		free(ret);
-		return NULL;
-	}
-
-	return &ret->base;
+	ret->scanline = (width + 16 - width % 16) * GetBytesPerPixel(ret->format);
+	ret->data = _aligned_malloc(ret->scanline * ret->h * 1ULL, 32);
+	WINPR_ASSERT(ret->data);
+	return ret;
 }
 
 static BOOL gdiVideoShowSurface(VideoClientContext* video, const VideoSurface* surface)
 {
 	BOOL rc = FALSE;
 	rdpGdi* gdi;
-	const gdiVideoSurface* gdiSurface = (const gdiVideoSurface*)surface;
 	RECTANGLE_16 surfaceRect;
 	rdpUpdate* update;
 
@@ -137,9 +120,10 @@ static BOOL gdiVideoShowSurface(VideoClientContext* video, const VideoSurface* s
 		WINPR_ASSERT(gdi->primary_buffer);
 		WINPR_ASSERT(gdi->primary);
 		WINPR_ASSERT(gdi->primary->hdc);
+
 		if (!freerdp_image_copy(gdi->primary_buffer, gdi->primary->hdc->format, gdi->stride, nXDst,
 		                        nYDst, width, height, surface->data, surface->format,
-		                        gdiSurface->scanline, 0, 0, NULL, FREERDP_FLIP_NONE))
+		                        surface->scanline, 0, 0, NULL, FREERDP_FLIP_NONE))
 			goto fail;
 
 		if ((nXDst > INT32_MAX) || (nYDst > INT32_MAX) || (width > INT32_MAX) ||
@@ -161,14 +145,13 @@ fail:
 
 static BOOL gdiVideoDeleteSurface(VideoClientContext* video, VideoSurface* surface)
 {
-	gdiVideoSurface* gdiSurface = (gdiVideoSurface*)surface;
 
-	if (gdiSurface)
-		_aligned_free(gdiSurface->image);
-
-	free(gdiSurface);
+	if (surface)
+		_aligned_free(surface->data);
+	free(surface);
 	return TRUE;
 }
+
 void gdi_video_control_init(rdpGdi* gdi, VideoClientContext* video)
 {
 	WINPR_ASSERT(gdi);

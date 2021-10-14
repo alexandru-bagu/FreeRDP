@@ -31,23 +31,36 @@ typedef struct
 	XImage* image;
 } xfVideoSurface;
 
-static VideoSurface* xfVideoCreateSurface(VideoClientContext* video, BYTE* data, DWORD format,
-                                          UINT32 x, UINT32 y, UINT32 width, UINT32 height)
+static VideoSurface* xfVideoCreateSurface(VideoClientContext* video, UINT32 x, UINT32 y,
+                                          UINT32 width, UINT32 height)
 {
-	xfContext* xfc = (xfContext*)video->custom;
-	xfVideoSurface* ret = calloc(1, sizeof(*ret));
+	xfContext* xfc;
+	xfVideoSurface* ret;
 
+	WINPR_ASSERT(video);
+
+	xfc = (xfContext*)video->custom;
+	WINPR_ASSERT(xfc);
+
+	if (xfc->depth > 16)
+		ret->base.format = PIXEL_FORMAT_BGRA32;
+	else
+		return NULL;
+
+	ret = calloc(1, sizeof(*ret));
 	if (!ret)
 		return NULL;
 
-	ret->base.format = format;
-	ret->base.data = data;
 	ret->base.x = x;
 	ret->base.y = y;
 	ret->base.w = width;
 	ret->base.h = height;
-	ret->image = XCreateImage(xfc->display, xfc->visual, xfc->depth, ZPixmap, 0, (char*)data, width,
-	                          height, 8, width * 4);
+	ret->base.scanline = (width + 16 - width % 16) * GetBytesPerPixel(ret->base.format);
+	ret->base.data = _aligned_malloc(ret->base.scanline * ret->base.h * 1ULL, 32);
+	WINPR_ASSERT(ret->base.data);
+
+	ret->image = XCreateImage(xfc->display, xfc->visual, xfc->depth, ZPixmap, 0,
+	                          (char*)ret->base.data, width, height, 8, ret->base.scanline);
 
 	if (!ret->image)
 	{

@@ -130,9 +130,7 @@ struct _PresentationContext
 	wStream* currentSample;
 	UINT64 lastPublishTime, nextPublishTime;
 	volatile LONG refCounter;
-	BYTE* surfaceData;
 	VideoSurface* surface;
-	DWORD format;
 };
 
 static void PresentationContext_unref(PresentationContext* presentation);
@@ -220,7 +218,6 @@ static PresentationContext* PresentationContext_new(VideoClientContext* video, B
 	if (!ret)
 		return NULL;
 
-	ret->format = PIXEL_FORMAT_BGRX32;
 	ret->video = video;
 	ret->PresentationId = PresentationId;
 
@@ -239,14 +236,7 @@ static PresentationContext* PresentationContext_new(VideoClientContext* video, B
 		goto fail;
 	}
 
-	ret->surfaceData = BufferPool_Take(priv->surfacePool, s);
-	if (!ret->surfaceData)
-	{
-		WLog_ERR(TAG, "unable to allocate surfaceData");
-		goto fail;
-	}
-
-	ret->surface = video->createSurface(video, ret->surfaceData, ret->format, x, y, width, height);
+	ret->surface = video->createSurface(video, x, y, width, height);
 	if (!ret->surface)
 	{
 		WLog_ERR(TAG, "unable to create surface");
@@ -286,7 +276,6 @@ static void PresentationContext_unref(PresentationContext* presentation)
 	h264_context_free(presentation->h264);
 	Stream_Free(presentation->currentSample, TRUE);
 	presentation->video->deleteSurface(presentation->video, presentation->surface);
-	BufferPool_Return(priv->surfacePool, presentation->surfaceData);
 	free(presentation);
 }
 
@@ -702,7 +691,7 @@ static void video_timer(VideoClientContext* video, UINT64 now)
 	presentation = frame->presentation;
 
 	priv->publishedFrames++;
-	memcpy(presentation->surfaceData, frame->surfaceData, frame->w * frame->h * 4ULL);
+	memcpy(presentation->surface->data, frame->surfaceData, frame->w * frame->h * 4ULL);
 
 	WINPR_ASSERT(video->showSurface);
 	video->showSurface(video, presentation->surface);
@@ -826,6 +815,7 @@ static UINT video_VideoData(VideoClientContext* context, const TSMM_VIDEO_DATA* 
 
 	if (data->CurrentPacketIndex == data->PacketsInSample)
 	{
+		VideoSurface* surface = presentation->surface;
 		H264_CONTEXT* h264 = presentation->h264;
 		UINT64 startTime = GetTickCount64(), timeAfterH264;
 		MAPPED_GEOMETRY* geom = presentation->geometry;
@@ -846,11 +836,10 @@ static UINT video_VideoData(VideoClientContext* context, const TSMM_VIDEO_DATA* 
 			int dropped = 0;
 
 			/* if the frame is to be published in less than 10 ms, let's consider it's now */
-			status =
-			    avc420_decompress(h264, Stream_Pointer(presentation->currentSample),
-			                      Stream_Length(presentation->currentSample),
-			                      presentation->surfaceData, presentation->format, 0,
-			                      presentation->SourceWidth, presentation->SourceHeight, &rect, 1);
+			status = avc420_decompress(
+			    h264, Stream_Pointer(presentation->currentSample),
+			    Stream_Length(presentation->currentSample), surface->data, surface->format,
+			    surface->scanline, presentation->SourceWidth, presentation->SourceHeight, &rect, 1);
 
 			if (status < 0)
 				return CHANNEL_RC_OK;
@@ -901,12 +890,10 @@ static UINT video_VideoData(VideoClientContext* context, const TSMM_VIDEO_DATA* 
 				return CHANNEL_RC_NO_MEMORY;
 			}
 
-			status =
-			    avc420_decompress(h264, Stream_Pointer(presentation->currentSample),
-			                      Stream_Length(presentation->currentSample), frame->surfaceData,
-			                      presentation->format, 0, presentation->SourceWidth,
-			                      presentation->SourceHeight, &rect, 1);
-
+			status = avc420_decompress(
+			    h264, Stream_Pointer(presentation->currentSample),
+			    Stream_Length(presentation->currentSample), frame->surfaceData, surface->format,
+			    surface->scanline, presentation->SourceWidth, presentation->SourceHeight, &rect, 1);
 			if (status < 0)
 				return CHANNEL_RC_OK;
 

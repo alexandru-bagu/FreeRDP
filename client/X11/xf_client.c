@@ -351,6 +351,7 @@ static BOOL xf_sw_end_paint(rdpContext* context)
 				y = cinvalid[i].y;
 				w = cinvalid[i].w;
 				h = cinvalid[i].h;
+
 				XPutImage(xfc->display, xfc->primary, xfc->gc, xfc->image, x, y, x, y, w, h);
 				xf_draw_screen(xfc, x, y, w, h);
 			}
