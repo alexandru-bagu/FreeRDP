@@ -102,11 +102,18 @@ static BOOL xfVideoDeleteSurface(VideoClientContext* video, VideoSurface* surfac
 }
 void xf_video_control_init(xfContext* xfc, VideoClientContext* video)
 {
+	WINPR_ASSERT(xfc);
+	WINPR_ASSERT(video);
+
 	gdi_video_control_init(xfc->context.gdi, video);
-	video->custom = xfc;
-	video->createSurface = xfVideoCreateSurface;
-	video->showSurface = xfVideoShowSurface;
-	video->deleteSurface = xfVideoDeleteSurface;
+
+	if (!freerdp_settings_get_bool(xfc->context.settings, FreeRDP_SoftwareGdi))
+	{
+		video->custom = xfc;
+		video->createSurface = xfVideoCreateSurface;
+		video->showSurface = xfVideoShowSurface;
+		video->deleteSurface = xfVideoDeleteSurface;
+	}
 }
 
 void xf_video_control_uninit(xfContext* xfc, VideoClientContext* video)
