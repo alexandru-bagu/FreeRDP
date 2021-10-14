@@ -557,7 +557,7 @@ static UINT video_control_send_client_notification(VideoClientContext* context,
 	UINT ret;
 	UINT32 cbSize;
 
-	s = Stream_New(buf, 30);
+	s = Stream_New(buf, 32);
 	if (!s)
 		return CHANNEL_RC_NO_MEMORY;
 
