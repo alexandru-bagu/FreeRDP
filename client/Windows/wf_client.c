@@ -124,6 +124,15 @@ static BOOL wf_begin_paint(rdpContext* context)
 
 	hdc->hwnd->invalid->null = TRUE;
 	hdc->hwnd->ninvalid = 0;
+
+	wfContext* wfc = (wfContext*)context;
+	if (!wfc->is_shown)
+	{
+		WLog_INFO(TAG, "window visible");
+		wfc->is_shown = true;
+		ShowWindow(wfc->hwnd, SW_SHOWNORMAL);
+	}
+
 	return TRUE;
 }
 
@@ -371,7 +380,8 @@ static BOOL wf_post_connect(freerdp* instance)
 	e.embed = FALSE;
 	e.handle = (void*)wfc->hwnd;
 	PubSub_OnEmbedWindow(context->pubSub, context, &e);
-	ShowWindow(wfc->hwnd, SW_SHOWNORMAL);
+	ShowWindow(wfc->hwnd, SW_SHOWMINIMIZED);
+	wfc->is_shown = FALSE;
 	UpdateWindow(wfc->hwnd);
 	instance->update->BeginPaint = wf_begin_paint;
 	instance->update->DesktopResize = wf_desktop_resize;
