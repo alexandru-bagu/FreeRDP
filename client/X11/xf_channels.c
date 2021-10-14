@@ -34,7 +34,6 @@
 #include "xf_rail.h"
 #include "xf_cliprdr.h"
 #include "xf_disp.h"
-#include "xf_video.h"
 
 void xf_OnChannelConnectedEventHandler(void* context, ChannelConnectedEventArgs* e)
 {
@@ -76,7 +75,7 @@ void xf_OnChannelConnectedEventHandler(void* context, ChannelConnectedEventArgs*
 	}
 	else if (strcmp(e->name, VIDEO_CONTROL_DVC_CHANNEL_NAME) == 0)
 	{
-		xf_video_control_init(xfc, (VideoClientContext*)e->pInterface);
+		gdi_video_control_init(xfc->context.gdi, (VideoClientContext*)e->pInterface);
 	}
 	else if (strcmp(e->name, VIDEO_DATA_DVC_CHANNEL_NAME) == 0)
 	{
@@ -87,7 +86,6 @@ void xf_OnChannelConnectedEventHandler(void* context, ChannelConnectedEventArgs*
 void xf_OnChannelDisconnectedEventHandler(void* context, ChannelDisconnectedEventArgs* e)
 {
 	xfContext* xfc = (xfContext*)context;
-	rdpSettings* settings = xfc->context.settings;
 
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)
 	{
@@ -125,10 +123,7 @@ void xf_OnChannelDisconnectedEventHandler(void* context, ChannelDisconnectedEven
 	}
 	else if (strcmp(e->name, VIDEO_CONTROL_DVC_CHANNEL_NAME) == 0)
 	{
-		if (settings->SoftwareGdi)
-			gdi_video_control_uninit(xfc->context.gdi, (VideoClientContext*)e->pInterface);
-		else
-			xf_video_control_uninit(xfc, (VideoClientContext*)e->pInterface);
+		gdi_video_control_uninit(xfc->context.gdi, (VideoClientContext*)e->pInterface);
 	}
 	else if (strcmp(e->name, VIDEO_DATA_DVC_CHANNEL_NAME) == 0)
 	{

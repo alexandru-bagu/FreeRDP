@@ -96,7 +96,6 @@
 #include "xf_input.h"
 #include "xf_cliprdr.h"
 #include "xf_disp.h"
-#include "xf_video.h"
 #include "xf_monitor.h"
 #include "xf_graphics.h"
 #include "xf_keyboard.h"
