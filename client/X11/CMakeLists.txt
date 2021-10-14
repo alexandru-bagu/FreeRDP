@@ -50,8 +50,6 @@ set(${MODULE_PREFIX}_SRCS
 	xf_graphics.h
 	xf_keyboard.c
 	xf_keyboard.h
-	xf_video.c
-	xf_video.h
 	xf_window.c
 	xf_window.h
 	xf_client.c
