@@ -70,14 +70,17 @@ static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, UINT32 x, 
 	ret->y = y;
 	ret->w = width;
 	ret->h = height;
+	ret->alignedWidth = ret->w + 32 - ret->w % 16;
+	ret->alignedHeight = ret->h + 32 - ret->h % 16;
 
-	ret->scanline = (width + 16 - width % 16) * GetBytesPerPixel(ret->format);
-	ret->data = _aligned_malloc(ret->scanline * ret->h * 1ULL, 32);
+	ret->scanline = ret->alignedWidth * GetBytesPerPixel(ret->format);
+	ret->data = _aligned_malloc(ret->scanline * ret->alignedHeight * 1ULL, 64);
 	WINPR_ASSERT(ret->data);
 	return ret;
 }
 
-static BOOL gdiVideoShowSurface(VideoClientContext* video, const VideoSurface* surface)
+static BOOL gdiVideoShowSurface(VideoClientContext* video, const VideoSurface* surface,
+                                UINT32 destinationWidth, UINT32 destinationHeight)
 {
 	BOOL rc = FALSE;
 	rdpGdi* gdi;
@@ -110,20 +113,20 @@ static BOOL gdiVideoShowSurface(VideoClientContext* video, const VideoSurface* s
 		const UINT32 nYSrc = surface->y;
 		const UINT32 nXDst = nXSrc;
 		const UINT32 nYDst = nYSrc;
-		const UINT32 width = (surface->w + surface->x < (UINT32)gdi->width)
-		                         ? surface->w
+		const UINT32 width = (destinationWidth + surface->x < (UINT32)gdi->width)
+		                         ? destinationWidth
 		                         : (UINT32)gdi->width - surface->x;
-		const UINT32 height = (surface->h + surface->y < (UINT32)gdi->height)
-		                          ? surface->h
+		const UINT32 height = (destinationHeight + surface->y < (UINT32)gdi->height)
+		                          ? destinationHeight
 		                          : (UINT32)gdi->height - surface->y;
 
 		WINPR_ASSERT(gdi->primary_buffer);
 		WINPR_ASSERT(gdi->primary);
 		WINPR_ASSERT(gdi->primary->hdc);
 
-		if (!freerdp_image_copy(gdi->primary_buffer, gdi->primary->hdc->format, gdi->stride, nXDst,
-		                        nYDst, width, height, surface->data, surface->format,
-		                        surface->scanline, 0, 0, NULL, FREERDP_FLIP_NONE))
+		if (!freerdp_image_scale(gdi->primary_buffer, gdi->primary->hdc->format, gdi->stride, nXDst,
+		                         nYDst, width, height, surface->data, surface->format,
+		                         surface->scanline, 0, 0, surface->w, surface->h))
 			goto fail;
 
 		if ((nXDst > INT32_MAX) || (nYDst > INT32_MAX) || (width > INT32_MAX) ||
