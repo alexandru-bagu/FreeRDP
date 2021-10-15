@@ -128,7 +128,8 @@ static BOOL wf_begin_paint(rdpContext* context)
 	wfContext* wfc = (wfContext*)context;
 	if (!wfc->is_shown)
 	{
-		WLog_INFO(TAG, "window visible");
+		WLog_INFO(TAG, "Video content is present!");
+		fflush(stdout);
 		wfc->is_shown = true;
 		ShowWindow(wfc->hwnd, SW_SHOWNORMAL);
 	}

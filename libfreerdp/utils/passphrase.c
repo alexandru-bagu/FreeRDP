@@ -56,6 +56,7 @@ char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int 
 	if (from_stdin)
 	{
 		printf("%s ", prompt);
+		fflush(stdout);
 		size_t read_cnt = 0, chr;
 		while (read_cnt < bufsiz - 1 && (chr = get_piped_char(isTty)) && chr != NEWLINE &&
 		       chr != CARRIAGERETURN)
@@ -97,6 +98,7 @@ char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int 
 		}
 		*(buf + read_cnt) = '\0';
 		printf("\n");
+		fflush(stdout);
 		return buf;
 	}
 fail:
