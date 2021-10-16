@@ -477,12 +477,8 @@ static BOOL wf_authenticate_raw(freerdp* instance, const char* title, char** use
 		                              CREDUI_MAX_DOMAIN_TARGET_LENGTH);
 		if (status != NO_ERROR)
 		{
-<<<<<<< HEAD
-			WLog_ERR(TAG, "Failed to parse UserName: %s into User: %s Domain: %s", UserName, User, Domain);
-=======
 			WLog_ERR(TAG, "Failed to parse UserName: %s into User: %s Domain: %s", UserName, User,
 			         Domain);
->>>>>>> win32-cli
 			return FALSE;
 		}
 	}
