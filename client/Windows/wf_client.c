@@ -35,6 +35,7 @@
 #include <tchar.h>
 #include <winpr/assert.h>
 #include <sys/types.h>
+#include <io.h>
 
 #include <freerdp/log.h>
 #include <freerdp/event.h>
@@ -61,7 +62,7 @@
 
 static BOOL wf_has_console(void)
 {
-	return GetConsoleWindow() != 0;
+	return _isatty(_fileno(stdin));
 }
 
 static BOOL wf_end_paint(rdpContext* context)
@@ -455,6 +456,8 @@ static BOOL wf_authenticate_raw(freerdp* instance, const char* title, char** use
 
 	if (!(username && *username && password && *password))
 	{
+		if (!wfc->isConsole && wfc->context.settings->CredentialsFromStdin)
+			WLog_ERR(TAG, "Flag for stdin read present but stdin is redirected; using GUI");
 		if (wfc->isConsole && wfc->context.settings->CredentialsFromStdin)
 			status = CredUICmdLinePromptForCredentialsA(
 			    title, NULL, 0, UserName, CREDUI_MAX_USERNAME_LENGTH + 1, Password,
@@ -474,7 +477,12 @@ static BOOL wf_authenticate_raw(freerdp* instance, const char* title, char** use
 		                              CREDUI_MAX_DOMAIN_TARGET_LENGTH);
 		if (status != NO_ERROR)
 		{
+<<<<<<< HEAD
 			WLog_ERR(TAG, "Failed to parse UserName: %s into User: %s Domain: %s", UserName, User, Domain);
+=======
+			WLog_ERR(TAG, "Failed to parse UserName: %s into User: %s Domain: %s", UserName, User,
+			         Domain);
+>>>>>>> win32-cli
 			return FALSE;
 		}
 	}
