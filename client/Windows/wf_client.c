@@ -455,7 +455,11 @@ static BOOL wf_authenticate_raw(freerdp* instance, const char* title, char** use
 
 	if (!(username && *username && password && *password))
 	{
+<<<<<<< HEAD
 		if (wfc->isConsole)
+=======
+		if (wfc->isConsole && wfc->context.settings->CredentialsFromStdin)
+>>>>>>> win32-cli
 			status = CredUICmdLinePromptForCredentialsA(
 			    title, NULL, 0, UserName, CREDUI_MAX_USERNAME_LENGTH + 1, Password,
 			    CREDUI_MAX_PASSWORD_LENGTH + 1, &fSave, dwFlags);

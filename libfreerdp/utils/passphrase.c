@@ -29,18 +29,13 @@
 #include <stdio.h>
 #include <io.h>
 
-char get_piped_char(int from_console)
+char read_chr(int isTty)
 {
-	if (from_console)
-	{
+	if (isTty)
 		return _getch();
-	}
-	else
-	{
-		char chr;
-		if (scanf_s("%c", &chr, sizeof(char)) && !feof(stdin))
-			return chr;
-	}
+	char chr;
+	if (scanf_s("%c", &chr, (UINT32)sizeof(char)) && !feof(stdin))
+		return chr;
 	return 0;
 }
 
@@ -52,13 +47,13 @@ char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int 
 	const char CARRIAGERETURN = '\r';
 	const char SHOW_ASTERISK = TRUE;
 
-	char isTty = _isatty(_fileno(stdin));
 	if (from_stdin)
 	{
 		printf("%s ", prompt);
 		fflush(stdout);
 		size_t read_cnt = 0, chr;
-		while (read_cnt < bufsiz - 1 && (chr = get_piped_char(isTty)) && chr != NEWLINE &&
+		char isTty = _isatty(_fileno(stdin));
+		while (read_cnt < bufsiz - 1 && (chr = read_chr(isTty)) && chr != NEWLINE &&
 		       chr != CARRIAGERETURN)
 		{
 			if (chr == BACKSPACE)
@@ -82,18 +77,14 @@ char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int 
 					}
 				}
 				else
-				{
 					goto fail;
-				}
 			}
 			else
 			{
 				*(buf + read_cnt) = chr;
 				read_cnt++;
 				if (SHOW_ASTERISK)
-				{
 					printf("*");
-				}
 			}
 		}
 		*(buf + read_cnt) = '\0';
