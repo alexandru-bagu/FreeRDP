@@ -28,19 +28,33 @@
 
 #include <stdio.h>
 #include <io.h>
+#include <winpr/wlog.h>
 
+const char* TAG = "PASSPHRASE";
 char get_piped_char(int from_console)
 {
+	WLog_VRB(TAG, "get_piped_char begin (console: %d)", from_console);
+	fflush(stdout);
+
 	if (from_console)
 	{
-		return _getch();
+		int chr = _getch();
+		WLog_VRB(TAG, "_getch = %d", chr);
+		fflush(stdout);
+		return chr;
 	}
 	else
 	{
 		char chr;
 		if (scanf("%c", &chr) && !feof(stdin))
+		{
+			WLog_VRB(TAG, "scanf = %d", chr);
+			fflush(stdout);
 			return chr;
+		}
 	}
+	WLog_VRB(TAG, "get_piped_char eof");
+	fflush(stdout);
 	return 0;
 }
 
@@ -53,6 +67,8 @@ char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int 
 	const char SHOW_ASTERISK = TRUE;
 
 	char isTty = _isatty(_fileno(stdin));
+	WLog_VRB(TAG, "stdin isTty %d", isTty);
+	fflush(stdout);
 	if (from_stdin)
 	{
 		printf("%s ", prompt);
@@ -61,6 +77,8 @@ char* freerdp_passphrase_read(const char* prompt, char* buf, size_t bufsiz, int 
 		while (read_cnt < bufsiz - 1 && (chr = get_piped_char(isTty)) && chr != NEWLINE &&
 		       chr != CARRIAGERETURN)
 		{
+			WLog_VRB(TAG, "get_piped_char current size: %d, chr: %d", read_cnt, chr);
+			fflush(stdout);
 			if (chr == BACKSPACE)
 			{
 				if (read_cnt > 0)
