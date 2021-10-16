@@ -46,11 +46,13 @@ char get_piped_char(int from_console)
 	else
 	{
 		char chr;
-		int ret = scanf("%c", &chr);
+		int ret = scanf_s("%c", &chr, (unsigned int)sizeof(chr));
 		WLog_VRB(TAG, "scanf ret = %d, chr = %d\n", ret, chr);
+		fflush(stdout);
 
 		int eof = feof(stdin);
 		WLog_VRB(TAG, "eof = %d\n", eof);
+		fflush(stdout);
 		if (!eof)
 		{
 			WLog_VRB(TAG, "scanf = %d\n", chr);
