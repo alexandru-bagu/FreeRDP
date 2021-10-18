@@ -1858,7 +1858,8 @@ static BOOL update_read_fast_glyph_order(wStream* s, const ORDER_INFO* orderInfo
 	if ((orderInfo->fieldFlags & ORDER_FIELD_15) != 0)
 	{
 		const BYTE* src;
-		wStream sub;
+		wStream subbuffer;
+		wStream* sub;
 		if (Stream_GetRemainingLength(s) < 1)
 			return FALSE;
 
@@ -1869,19 +1870,26 @@ static BOOL update_read_fast_glyph_order(wStream* s, const ORDER_INFO* orderInfo
 			return FALSE;
 
 		CopyMemory(fastGlyph->data, src, fastGlyph->cbData);
-		Stream_StaticInit(&sub, fastGlyph->data, fastGlyph->cbData);
+		sub = Stream_StaticInit(&subbuffer, fastGlyph->data, fastGlyph->cbData);
 
-		Stream_Read_UINT8(&sub, glyph->cacheIndex);
+		Stream_Read_UINT8(sub, glyph->cacheIndex);
 
 		if (fastGlyph->cbData > 1)
 		{
-			if (!update_read_2byte_signed(&sub, &glyph->x) ||
-			    !update_read_2byte_signed(&sub, &glyph->y) ||
-			    !update_read_2byte_unsigned(&sub, &glyph->cx) ||
-			    !update_read_2byte_unsigned(&sub, &glyph->cy))
+			if (!update_read_2byte_signed(sub, &glyph->x) ||
+			    !update_read_2byte_signed(sub, &glyph->y) ||
+			    !update_read_2byte_unsigned(sub, &glyph->cx) ||
+			    !update_read_2byte_unsigned(sub, &glyph->cy))
 				return FALSE;
 
-			glyph->cb = Stream_GetRemainingLength(&sub);
+			if ((glyph->cx == 0) || (glyph->cy == 0))
+			{
+				WLog_ERR(TAG, "GLYPH_DATA_V2::cx=%" PRIu32 ", GLYPH_DATA_V2::cy=%" PRIu32,
+				         glyph->cx, glyph->cy);
+				return FALSE;
+			}
+
+			glyph->cb = Stream_GetRemainingLength(sub);
 			if (glyph->cb > 0)
 			{
 				BYTE* new_aj = (BYTE*)realloc(glyph->aj, glyph->cb);
@@ -1890,7 +1898,7 @@ static BOOL update_read_fast_glyph_order(wStream* s, const ORDER_INFO* orderInfo
 					return FALSE;
 
 				glyph->aj = new_aj;
-				Stream_Read(&sub, glyph->aj, glyph->cb);
+				Stream_Read(sub, glyph->aj, glyph->cb);
 			}
 			else
 			{
@@ -2867,6 +2875,13 @@ update_read_create_offscreen_bitmap_order(wStream* s,
 	Stream_Read_UINT16(s, create_offscreen_bitmap->cx); /* cx (2 bytes) */
 	Stream_Read_UINT16(s, create_offscreen_bitmap->cy); /* cy (2 bytes) */
 	deleteList = &(create_offscreen_bitmap->deleteList);
+
+	if ((create_offscreen_bitmap->cx == 0) || (create_offscreen_bitmap->cy == 0))
+	{
+		WLog_ERR(TAG, "Invalid OFFSCREEN_DELETE_LIST: cx=%" PRIu16 ", cy=%" PRIu16,
+		         create_offscreen_bitmap->cx, create_offscreen_bitmap->cy);
+		return FALSE;
+	}
 
 	if (deleteListPresent)
 	{
