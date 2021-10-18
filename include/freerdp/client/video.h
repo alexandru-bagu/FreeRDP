@@ -23,30 +23,8 @@
 #include <freerdp/client/geometry.h>
 #include <freerdp/channels/video.h>
 
-typedef struct _VideoClientContext VideoClientContext;
-typedef struct _VideoClientContextPriv VideoClientContextPriv;
-typedef struct _VideoSurface VideoSurface;
-
-/** @brief an implementation of surface used by the video channel */
-struct _VideoSurface
-{
-	UINT32 x, y, w, h;
-	UINT32 alignedWidth, alignedHeight;
-	BYTE* data;
-	DWORD format;
-	UINT32 scanline;
-};
-
-typedef void (*pcVideoTimer)(VideoClientContext* video, UINT64 now);
-typedef void (*pcVideoSetGeometry)(VideoClientContext* video, GeometryClientContext* geometry);
-typedef VideoSurface* (*pcVideoCreateSurface)(VideoClientContext* video, UINT32 x, UINT32 y,
-                                              UINT32 width, UINT32 height);
-typedef BOOL (*pcVideoShowSurface)(VideoClientContext* video, const VideoSurface* surface,
-                                   UINT32 destinationWidth, UINT32 destinationHeight);
-typedef BOOL (*pcVideoDeleteSurface)(VideoClientContext* video, VideoSurface* surface);
-
-/** @brief context for the video (MS-RDPEVOR) channel */
-struct _VideoClientContext
+#ifdef __cplusplus
+extern "C"
 {
 #endif
 
