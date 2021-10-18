@@ -31,9 +31,9 @@
 
 char read_chr(int isTty)
 {
+	char chr;
 	if (isTty)
 		return _getch();
-	char chr;
 	if (scanf_s("%c", &chr, (UINT32)sizeof(char)) && !feof(stdin))
 		return chr;
 	return 0;

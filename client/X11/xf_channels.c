@@ -38,6 +38,14 @@
 void xf_OnChannelConnectedEventHandler(void* context, ChannelConnectedEventArgs* e)
 {
 	xfContext* xfc = (xfContext*)context;
+	rdpSettings* settings;
+
+	WINPR_ASSERT(xfc);
+	WINPR_ASSERT(e);
+	WINPR_ASSERT(e->name);
+
+	settings = xfc->context.settings;
+	WINPR_ASSERT(settings);
 
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)
 	{

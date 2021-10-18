@@ -48,15 +48,50 @@ typedef BOOL (*pcVideoDeleteSurface)(VideoClientContext* video, VideoSurface* su
 /** @brief context for the video (MS-RDPEVOR) channel */
 struct _VideoClientContext
 {
-	void* handle;
-	void* custom;
-	VideoClientContextPriv* priv;
+#endif
 
-	pcVideoSetGeometry setGeometry;
-	pcVideoTimer timer;
-	pcVideoCreateSurface createSurface;
-	pcVideoShowSurface showSurface;
-	pcVideoDeleteSurface deleteSurface;
-};
+	typedef struct _VideoClientContext VideoClientContext;
+	typedef struct _VideoClientContextPriv VideoClientContextPriv;
+	typedef struct _VideoSurface VideoSurface;
+
+	/** @brief an implementation of surface used by the video channel */
+	struct _VideoSurface
+	{
+		UINT32 x, y, w, h;
+		UINT32 alignedWidth, alignedHeight;
+		BYTE* data;
+		DWORD format;
+		UINT32 scanline;
+	};
+
+	FREERDP_API VideoSurface* VideoClient_CreateCommonContext(size_t size, UINT32 x, UINT32 y,
+	                                                          UINT32 w, UINT32 h);
+	FREERDP_API void VideoClient_DestroyCommonContext(VideoSurface* surface);
+
+	typedef void (*pcVideoTimer)(VideoClientContext* video, UINT64 now);
+	typedef void (*pcVideoSetGeometry)(VideoClientContext* video, GeometryClientContext* geometry);
+	typedef VideoSurface* (*pcVideoCreateSurface)(VideoClientContext* video, UINT32 x, UINT32 y,
+	                                              UINT32 width, UINT32 height);
+	typedef BOOL (*pcVideoShowSurface)(VideoClientContext* video, const VideoSurface* surface,
+	                                   UINT32 destinationWidth, UINT32 destinationHeight);
+	typedef BOOL (*pcVideoDeleteSurface)(VideoClientContext* video, VideoSurface* surface);
+
+	/** @brief context for the video (MS-RDPEVOR) channel */
+	struct _VideoClientContext
+	{
+		void* handle;
+		void* custom;
+		VideoClientContextPriv* priv;
+
+		pcVideoSetGeometry setGeometry;
+		pcVideoTimer timer;
+		pcVideoCreateSurface createSurface;
+		pcVideoShowSurface showSurface;
+		pcVideoDeleteSurface deleteSurface;
+	};
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FREERDP_CHANNELS_CLIENT_VIDEO_H */

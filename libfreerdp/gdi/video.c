@@ -48,6 +48,10 @@ void gdi_video_geometry_init(rdpGdi* gdi, GeometryClientContext* geom)
 
 void gdi_video_geometry_uninit(rdpGdi* gdi, GeometryClientContext* geom)
 {
+	WINPR_ASSERT(gdi);
+	WINPR_ASSERT(geom);
+	WINPR_UNUSED(gdi);
+	WINPR_UNUSED(geom);
 }
 
 static VideoSurface* gdiVideoCreateSurface(VideoClientContext* video, UINT32 x, UINT32 y,
@@ -200,4 +204,40 @@ void gdi_video_data_uninit(rdpGdi* gdi, VideoClientContext* context)
 	WINPR_ASSERT(gdi);
 	WINPR_ASSERT(gdi->context);
 	PubSub_UnsubscribeTimer(gdi->context->pubSub, gdi_video_timer);
+}
+
+VideoSurface* VideoClient_CreateCommonContext(size_t size, UINT32 x, UINT32 y, UINT32 w, UINT32 h)
+{
+	VideoSurface* ret;
+
+	WINPR_ASSERT(size >= sizeof(VideoSurface));
+
+	ret = calloc(1, size);
+	if (!ret)
+		return NULL;
+
+	ret->format = PIXEL_FORMAT_BGRX32;
+	ret->x = x;
+	ret->y = y;
+	ret->w = w;
+	ret->h = h;
+	ret->alignedWidth = ret->w + 32 - ret->w % 16;
+	ret->alignedHeight = ret->h + 32 - ret->h % 16;
+
+	ret->scanline = ret->alignedWidth * GetBytesPerPixel(ret->format);
+	ret->data = _aligned_malloc(ret->scanline * ret->alignedHeight * 1ULL, 64);
+	if (!ret->data)
+		goto fail;
+	return ret;
+fail:
+	VideoClient_DestroyCommonContext(ret);
+	return NULL;
+}
+
+void VideoClient_DestroyCommonContext(VideoSurface* surface)
+{
+	if (!surface)
+		return;
+	_aligned_free(surface->data);
+	free(surface);
 }
