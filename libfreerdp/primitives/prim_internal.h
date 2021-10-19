@@ -233,21 +233,30 @@ static INLINE INT32 E(INT32 V)
 
 static INLINE BYTE YUV2R(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 r = (256L * C(Y) + 0L * D(U) + 403L * E(V));
+	INT32 RX = 1.164 * (Y - 16) + 1.596 * E(V);
+	return CLIP(RX);
+
+	const INT32 r = (277L * C(Y) + 0L * D(U) + 409L * E(V));
 	const INT32 r8 = r >> 8L;
 	return CLIP(r8);
 }
 
 static INLINE BYTE YUV2G(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 g = (256L * C(Y) - 48L * D(U) - 120L * E(V));
+	INT32 GX = 1.164 * (Y - 16) - 0.813 * (V - 128) - 0.391 * (U - 128);
+	return CLIP(GX);
+
+	const INT32 g = (277L * C(Y) - 180L * D(U) - 80L * E(V));
 	const INT32 g8 = g >> 8L;
 	return CLIP(g8);
 }
 
 static INLINE BYTE YUV2B(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 b = (256L * C(Y) + 475L * D(U) + 0L * E(V));
+	INT32 BX = 1.164 * (Y - 16) + 2.018 * (U - 128);
+	return CLIP(BX);
+
+	const INT32 b = (277L * C(Y) + 517L * D(U) + 0L * E(V));
 	const INT32 b8 = b >> 8L;
 	return CLIP(b8);
 }

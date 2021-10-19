@@ -159,6 +159,11 @@ static pstatus_t ssse3_YUV420ToRGB_BGRX(const BYTE* const* pSrc, const UINT32* s
 	const __m128i duplicate = _mm_set_epi8(7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 0, 0);
 	UINT32 y;
 
+	if (nHeight == 768 && nWidth == 1024)
+	{
+		return PRIMITIVES_SUCCESS;
+	}
+
 	for (y = 0; y < nHeight; y++)
 	{
 		UINT32 x;
@@ -167,7 +172,7 @@ static pstatus_t ssse3_YUV420ToRGB_BGRX(const BYTE* const* pSrc, const UINT32* s
 		const BYTE* UData = pSrc[1] + (y / 2) * srcStep[1];
 		const BYTE* VData = pSrc[2] + (y / 2) * srcStep[2];
 
-		for (x = 0; x < nWidth - pad; x += 16)
+		for (x = 0; x < 0; x += 16)
 		{
 			const __m128i Y = _mm_loadu_si128((const __m128i*)YData);
 			const __m128i uRaw = _mm_loadu_si128((const __m128i*)UData);
@@ -183,16 +188,17 @@ static pstatus_t ssse3_YUV420ToRGB_BGRX(const BYTE* const* pSrc, const UINT32* s
 			dst = ssse3_YUV444Pixel(dst, Y, U, V, 3);
 		}
 
-		for (x = 0; x < pad; x++)
+		for (x = 0; x < nWidth; x++)
 		{
-			const BYTE Y = *YData++;
+			const BYTE Y = *YData;
 			const BYTE U = *UData;
 			const BYTE V = *VData;
 			const BYTE r = YUV2R(Y, U, V);
 			const BYTE g = YUV2G(Y, U, V);
 			const BYTE b = YUV2B(Y, U, V);
 			dst = (__m128i*)writePixelBGRX((BYTE*)dst, 4, PIXEL_FORMAT_BGRX32, r, g, b, 0);
-
+			
+			++YData;
 			if (x % 2)
 			{
 				UData++;
