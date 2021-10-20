@@ -340,12 +340,13 @@ static int openh264_compress(H264_CONTEXT* h264, const BYTE** pYUVData, const UI
 
 static void openh264_uninit(H264_CONTEXT* h264)
 {
+	H264_CONTEXT* ctx = h264;
 	UINT32 x;
-	H264_CONTEXT_OPENH264* sysContexts = (H264_CONTEXT_OPENH264*)h264->pSystemData;
+	H264_CONTEXT_OPENH264* sysContexts = (H264_CONTEXT_OPENH264*)ctx->pSystemData;
 
 	if (sysContexts)
 	{
-		for (x = 0; x < h264->numSystemData; x++)
+		for (x = 0; x < ctx->numSystemData; x++)
 		{
 			H264_CONTEXT_OPENH264* sys = &sysContexts[x];
 
@@ -368,8 +369,8 @@ static void openh264_uninit(H264_CONTEXT* h264)
 		if (sysContexts->lib)
 			FreeLibrary(sysContexts->lib);
 #endif
-		free(h264->pSystemData);
-		h264->pSystemData = NULL;
+		free(ctx->pSystemData);
+		ctx->pSystemData = NULL;
 	}
 }
 
