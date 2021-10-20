@@ -245,7 +245,7 @@ static INLINE INT32 E(INT32 V)
 
 static INLINE BYTE YUV2R(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 r = (298L * C(Y) + 0L * D(U) + 403L * E(V));
+	const INT32 r = (298L * C(Y) + 0L * D(U) + 409L * E(V));
 	const INT32 r8 = r >> 8L;
 	return CLIP(r8);
 }
