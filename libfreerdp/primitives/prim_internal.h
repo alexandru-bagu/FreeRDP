@@ -225,7 +225,7 @@ static INLINE BYTE CLIP(INT64 X)
  *
  * | R |   ( | 298     0    409 | | Y - 16  | )
  * | G | = ( | 298   -100  -208 | | U - 128 | ) >> 8
- * | B |   ( | 298    517    0  | | V - 128 | )
+ * | B |   ( | 298    516    0  | | V - 128 | )
  */
 
 static INLINE INT32 C(INT32 Y)
@@ -259,7 +259,7 @@ static INLINE BYTE YUV2G(INT32 Y, INT32 U, INT32 V)
 
 static INLINE BYTE YUV2B(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 b = (298L * C(Y) + 517L * D(U) + 0L * E(V));
+	const INT32 b = (298L * C(Y) + 516L * D(U) + 0L * E(V));
 	const INT32 b8 = b >> 8L;
 	return CLIP(b8);
 }

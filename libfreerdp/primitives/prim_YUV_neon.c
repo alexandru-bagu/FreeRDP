@@ -42,7 +42,7 @@ static primitives_t* generic = NULL;
 /**
  * | R |   ( | 298     0    409 | | Y -  16 | )
  * | G | = ( | 298   -100  -208 | | U - 128 | ) >> 8
- * | B |   ( | 298    517    0  | | V - 128 | )
+ * | B |   ( | 298    516    0  | | V - 128 | )
  */
 
 static INLINE uint8x8_t neon_YUV2R(int32x4_t Ch, int32x4_t Cl, int16x4_t Dh, int16x4_t Dl,
@@ -77,10 +77,10 @@ static INLINE uint8x8_t neon_YUV2G(int32x4_t Ch, int32x4_t Cl, int16x4_t Dh, int
 static INLINE uint8x8_t neon_YUV2B(int32x4_t Ch, int32x4_t Cl, int16x4_t Dh, int16x4_t Dl,
                                    int16x4_t Eh, int16x4_t El)
 {
-	/* B = (298 * (Y - 16) + 517 * (U - 128)) >> 8*/
-	const int16x4_t c517 = { 517, 517, 517, 517 };
-	const int32x4_t CDh = vmlal_s16(Ch, Dh, c517);
-	const int32x4_t CDl = vmlal_s16(Ch, Dl, c517);
+	/* B = (298 * (Y - 16) + 516 * (U - 128)) >> 8*/
+	const int16x4_t c516 = { 516, 516, 516, 516 };
+	const int32x4_t CDh = vmlal_s16(Ch, Dh, c516);
+	const int32x4_t CDl = vmlal_s16(Ch, Dl, c516);
 	const int32x4_t Bh = vrshrq_n_s32(CDh, 8);
 	const int32x4_t Bl = vrshrq_n_s32(CDl, 8);
 	const int16x8_t B = vcombine_s16(vqmovn_s32(Bl), vqmovn_s32(Bh));
@@ -102,10 +102,10 @@ static INLINE BYTE* neon_YuvToRgbPixel(BYTE* pRGB, int16x8_t Y, int16x8_t D, int
 	const int16x4_t Eh = vget_high_s16(E);
 	const int16x4_t El = vget_low_s16(E);
 	{
-		/* B = (298 * (Y - 16) + 517 * (U - 128)) >> 8*/
-		const int16x4_t c517 = { 517, 517, 517, 517 };
-		const int32x4_t CDh = vmlal_s16(Ch, Dh, c517);
-		const int32x4_t CDl = vmlal_s16(Cl, Dl, c517);
+		/* B = (298 * (Y - 16) + 516 * (U - 128)) >> 8*/
+	  const int16x4_t c516 = { 516, 516, 516, 516 };
+		const int32x4_t CDh = vmlal_s16(Ch, Dh, c516);
+		const int32x4_t CDl = vmlal_s16(Cl, Dl, c516);
 		const int32x4_t Bh = vrshrq_n_s32(CDh, 8);
 		const int32x4_t Bl = vrshrq_n_s32(CDl, 8);
 		const int16x8_t B = vcombine_s16(vqmovn_s32(Bl), vqmovn_s32(Bh));

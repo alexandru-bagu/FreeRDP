@@ -46,13 +46,13 @@ __kernel void yuv420_to_argb_1b(
 	/** 
 	 * | R |   ( | 298     0    409 | | Y -  16 | )
 	 * | G | = ( | 298   -100  -208 | | U - 128 | ) >> 8
-	 * | B |   ( | 298    517    0  | | V - 128 | )
+	 * | B |   ( | 298    516    0  | | V - 128 | )
 	 */
 	int y298 = 298 * Ydim;
 	destPtr[0] = 0xff; /* A */
 	destPtr[1] = clamp_uc((y298 + (409 * Vdim)) >> 8, 0, 255); /* R */
 	destPtr[2] = clamp_uc((y298 - (100 * Udim) - (208 * Vdim)) >> 8 , 0, 255); /* G */
-	destPtr[3] = clamp_uc((y298 + (517 * Udim)) >> 8, 0, 255); /* B */
+	destPtr[3] = clamp_uc((y298 + (516 * Udim)) >> 8, 0, 255); /* B */
 }
 
 __kernel void yuv420_to_bgra_1b(
@@ -73,10 +73,10 @@ __kernel void yuv420_to_bgra_1b(
 	/** 
 	 * | R |   ( | 298     0    409 | | Y -  16 | )
 	 * | G | = ( | 298   -100  -208 | | U - 128 | ) >> 8
-	 * | B |   ( | 298    517    0  | | V - 128 | )
+	 * | B |   ( | 298    516    0  | | V - 128 | )
 	 */
 	int y298 = 298 * Y;
-	destPtr[0] = clamp_uc((y298 + (517 * U)) >> 8, 0, 255); /* B */
+	destPtr[0] = clamp_uc((y298 + (516 * U)) >> 8, 0, 255); /* B */
 	destPtr[1] = clamp_uc((y298 - (100 * U) - (208 * V)) >> 8 , 0, 255);	/* G */
 	destPtr[2] = clamp_uc((y298 + (409 * V)) >> 8, 0, 255); 	/* R */
 	destPtr[3] = 0xff; /* A */
@@ -100,10 +100,10 @@ __kernel void yuv444_to_bgra_1b(
 	/** 
 	 * | R |   ( | 298     0    409 | | Y -  16 | )
 	 * | G | = ( | 298   -100  -208 | | U - 128 | ) >> 8
-	 * | B |   ( | 298    517    0  | | V - 128 | )
+	 * | B |   ( | 298    516    0  | | V - 128 | )
 	 */
 	int y298 = 298 * Y;
-	destPtr[0] = clamp_uc((y298 + (517 * U)) >> 8, 0, 255); /* B */
+	destPtr[0] = clamp_uc((y298 + (516 * U)) >> 8, 0, 255); /* B */
 	destPtr[1] = clamp_uc((y298 - (100 * U) - (208 * V)) >> 8 , 0, 255);	/* G */
 	destPtr[2] = clamp_uc((y298 + (409 * V)) >> 8, 0, 255); 	/* R */
 	destPtr[3] = 0xff; /* A */
@@ -127,10 +127,10 @@ __kernel void yuv444_to_argb_1b(
 	/** 
 	 * | R |   ( | 298     0    409 | | Y -  16 | )
 	 * | G | = ( | 298   -100  -208 | | U - 128 | ) >> 8
-	 * | B |   ( | 298    517    0  | | V - 128 | )
+	 * | B |   ( | 298    516    0  | | V - 128 | )
 	 */
 	int y298 = 298 * Y;
-	destPtr[3] = clamp_uc((y298 + (517 * U)) >> 8, 0, 255); /* B */
+	destPtr[3] = clamp_uc((y298 + (516 * U)) >> 8, 0, 255); /* B */
 	destPtr[2] = clamp_uc((y298 - (100 * U) - (208 * V)) >> 8 , 0, 255);	/* G */
 	destPtr[1] = clamp_uc((y298 + (409 * V)) >> 8, 0, 255); 	/* R */
 	destPtr[0] = 0xff; /* A */
