@@ -128,10 +128,10 @@ static __m128i* ssse3_YUV444Pixel(__m128i* dst, __m128i Yraw, __m128i Uraw, __m1
 		}
 		/* Get the B value */
 		{
-			const __m128i c517 = _mm_set1_epi16(517);
-			const __m128i d517 =
-			    _mm_unpackhi_epi16(_mm_mullo_epi16(D, c517), _mm_mulhi_epi16(D, c517));
-			const __m128i Bs = _mm_add_epi32(y298, d517);
+			const __m128i c516 = _mm_set1_epi16(516);
+			const __m128i d516 =
+			    _mm_unpackhi_epi16(_mm_mullo_epi16(D, c516), _mm_mulhi_epi16(D, c516));
+			const __m128i Bs = _mm_add_epi32(y298, d516);
 			const __m128i B32 = _mm_srai_epi32(Bs, 8);
 			const __m128i B16 = _mm_packs_epi32(B32, _mm_setzero_si128());
 			const __m128i B = _mm_packus_epi16(B16, _mm_setzero_si128());
