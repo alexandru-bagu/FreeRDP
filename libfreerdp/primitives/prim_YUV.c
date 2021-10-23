@@ -460,9 +460,9 @@ static pstatus_t general_YUV444ToRGB_8u_P3AC4R(const BYTE* const pSrc[3], const 
 	}
 }
 /**
- * | R |   ( | 256     0    403 | |    Y    | )
- * | G | = ( | 256   -48   -120 | | U - 128 | ) >> 8
- * | B |   ( | 256   475      0 | | V - 128 | )
+ * | R |   ( | 298     0    409 | | Y - 16  | )
+ * | G | = ( | 298   -100  -208 | | U - 128 | ) >> 8
+ * | B |   ( | 298    516    0  | | V - 128 | )
  */
 static pstatus_t general_YUV420ToRGB_8u_P3AC4R(const BYTE* const pSrc[3], const UINT32 srcStep[3],
                                                BYTE* pDst, UINT32 dstStep, UINT32 DstFormat,
@@ -589,23 +589,24 @@ static pstatus_t general_YUV420ToRGB_8u_P3AC4R(const BYTE* const pSrc[3], const 
 }
 
 /**
- * | Y |    ( |  66   129     25 | | R | )        |  16 |
- * | U | =  ( | -38   -74    112 | | G | ) >> 8 + | 128 |
- * | V |    ( | 112   -94    -18 | | B | )        | 128 |
+ * | Y |    ( ( |  66   129     25 | | R | )   | 128 | )        |  16 |
+ * | U | =  ( ( | -38   -74    112 | | G | ) + | 128 | ) >> 8 + | 128 |
+ * | V |    ( ( | 112   -94    -18 | | B | )   | 128 | )        | 128 |
  */
+
 static INLINE BYTE RGB2Y(BYTE R, BYTE G, BYTE B)
 {
-	return ((66 * R + 129 * G + 25 * B) >> 8) + 16u;
+	return ((66lu * R + 129lu * G + 25lu * B + 128lu) >> 8lu) + 16lu;
 }
 
 static INLINE BYTE RGB2U(BYTE R, BYTE G, BYTE B)
 {
-	return ((-38u * R - 74u * G + 112u * B) >> 8u) + 128u;
+	return ((-38lu * R - 74lu * G + 112lu * B + 128lu) >> 8lu) + 128lu;
 }
 
 static INLINE BYTE RGB2V(INT32 R, INT32 G, INT32 B)
 {
-	return ((112lu * R - 94lu * G - 18lu * B) >> 8lu) + 128lu;
+	return ((112lu * R - 94lu * G - 18lu * B + 128lu) >> 8lu) + 128lu;
 }
 
 static pstatus_t general_RGBToYUV444_8u_P3AC4R(const BYTE* pSrc, UINT32 SrcFormat,
