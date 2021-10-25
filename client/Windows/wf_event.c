@@ -53,9 +53,17 @@ static BOOL wf_scale_mouse_event_ex(wfContext* wfc, rdpInput* input, UINT16 flag
 static BOOL g_flipping_in;
 static BOOL g_flipping_out;
 
+static BOOL g_control_r_down;
+static BOOL g_control_l_down;
+static BOOL g_alt_r_down;
+static BOOL g_alt_l_down;
+
+#define CONTROL_DOWN (g_control_l_down || g_control_r_down)
+#define ALT_DOWN (g_alt_l_down || g_alt_r_down)
+
 static BOOL alt_ctrl_down()
 {
-	return ((GetAsyncKeyState(VK_CONTROL) & 0x8000) || (GetAsyncKeyState(VK_MENU) & 0x8000));
+	return CONTROL_DOWN || ALT_DOWN;
 }
 
 LRESULT CALLBACK wf_ll_kbd_proc(int nCode, WPARAM wParam, LPARAM lParam)
@@ -72,6 +80,34 @@ LRESULT CALLBACK wf_ll_kbd_proc(int nCode, WPARAM wParam, LPARAM lParam)
 			g_flipping_in = FALSE;
 
 		return CallNextHookEx(NULL, nCode, wParam, lParam);
+	}
+
+	switch (wParam)
+	{
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+			p = (PKBDLLHOOKSTRUCT)lParam;
+			if (p->vkCode == VK_LCONTROL)
+				g_control_l_down = TRUE;
+			else if (p->vkCode == VK_RCONTROL)
+				g_control_r_down = TRUE;
+			else if (p->vkCode == VK_LMENU)
+				g_alt_l_down = TRUE;
+			else if (p->vkCode == VK_RMENU)
+				g_alt_r_down = TRUE;
+			break;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			p = (PKBDLLHOOKSTRUCT)lParam;
+			if (p->vkCode == VK_LCONTROL)
+				g_control_l_down = FALSE;
+			else if (p->vkCode == VK_RCONTROL)
+				g_control_r_down = FALSE;
+			else if (p->vkCode == VK_LMENU)
+				g_alt_l_down = FALSE;
+			else if (p->vkCode == VK_RMENU)
+				g_alt_r_down = FALSE;
+			break;
 	}
 
 	if (g_focus_hWnd && (nCode == HC_ACTION))
@@ -94,15 +130,20 @@ LRESULT CALLBACK wf_ll_kbd_proc(int nCode, WPARAM wParam, LPARAM lParam)
 				          (wParam == WM_KEYDOWN), p->scanCode, p->flags, p->vkCode);
 
 				if (wfc->fullscreen_toggle &&
-				    ((p->vkCode == VK_RETURN) || (p->vkCode == VK_CANCEL)) &&
-				    (GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
-				    (GetAsyncKeyState(VK_MENU) & 0x8000)) /* could also use flags & LLKHF_ALTDOWN */
+				    ((p->vkCode == VK_RETURN) || (p->vkCode == VK_CANCEL)) && CONTROL_DOWN &&
+				    ALT_DOWN) /* could also use flags & LLKHF_ALTDOWN */
 				{
 					if (wParam == WM_KEYDOWN)
 					{
 						wf_toggle_fullscreen(wfc);
 						return 1;
 					}
+				}
+
+				if (p->vkCode == VK_KEY_Q && CONTROL_DOWN && ALT_DOWN)
+				{
+					freerdp_disconnect(wfc->context.instance);
+					return 1;
 				}
 
 				if (rdp_scancode == RDP_SCANCODE_NUMLOCK_EXTENDED)
