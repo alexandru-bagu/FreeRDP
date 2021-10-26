@@ -93,8 +93,8 @@ static INLINE BYTE* neon_YuvToRgbPixel(BYTE* pRGB, int16x8_t Y, int16x8_t D, int
 {
 	uint8x8x4_t bgrx;
 	const int16x4_t c16 = { 16, 16, 16, 16 };
-	const int32x4_t Yh = vsub_s16(vget_high_s16(Y), c16);
-	const int32x4_t Yl = vsub_s16(vget_low_s16(Y), c16);
+	const int16x4_t Yh = vsub_s16(vget_high_s16(Y), c16);
+	const int16x4_t Yl = vsub_s16(vget_low_s16(Y), c16);
 	const int32x4_t Ch = vmulq_n_s32(vmovl_s16(Yh), 298); /* Y * 298 */
 	const int32x4_t Cl = vmulq_n_s32(vmovl_s16(Yl), 298); /* Y * 298 */
 	const int16x4_t Dh = vget_high_s16(D);
@@ -103,7 +103,7 @@ static INLINE BYTE* neon_YuvToRgbPixel(BYTE* pRGB, int16x8_t Y, int16x8_t D, int
 	const int16x4_t El = vget_low_s16(E);
 	{
 		/* B = (298 * (Y - 16) + 516 * (U - 128)) >> 8*/
-	  const int16x4_t c516 = { 516, 516, 516, 516 };
+		const int16x4_t c516 = { 516, 516, 516, 516 };
 		const int32x4_t CDh = vmlal_s16(Ch, Dh, c516);
 		const int32x4_t CDl = vmlal_s16(Cl, Dl, c516);
 		const int32x4_t Bh = vrshrq_n_s32(CDh, 8);
