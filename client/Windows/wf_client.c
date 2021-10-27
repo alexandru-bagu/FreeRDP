@@ -1096,6 +1096,8 @@ static DWORD WINAPI wf_client_thread(LPVOID lpParam)
 	}
 
 disconnect:
+	exit(0);
+
 	freerdp_disconnect(instance);
 
 	if (async_input)
