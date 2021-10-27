@@ -252,6 +252,7 @@ static int button_hit(Button* const button)
 			break;
 
 		case BUTTON_CLOSE:
+			freerdp_disconnect(floatbar->wfc->context.instance);
 			SendMessage(floatbar->parent, WM_DESTROY, 0, 0);
 			break;
 
