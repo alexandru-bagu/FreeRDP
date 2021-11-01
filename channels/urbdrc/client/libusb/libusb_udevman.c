@@ -731,6 +731,7 @@ static UINT urbdrc_udevman_parse_addin_args(UDEVMAN* udevman, const ADDIN_ARGV* 
 	for (x = 0; x < args->argc; x++)
 	{
 		const char* arg = args->argv[x];
+		WLog_DBG(TAG, "parsing urbdrc arg(%d): %s", x, arg);
 		if (strcmp(arg, "dbg") == 0)
 		{
 			WLog_SetLogLevel(WLog_Get(TAG), WLOG_TRACE);
