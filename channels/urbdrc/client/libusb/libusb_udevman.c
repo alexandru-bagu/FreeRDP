@@ -198,7 +198,8 @@ static size_t udevman_register_udevice(IUDEVMAN* idevman, BYTE bus_number, BYTE 
 		if (num == 0)
 		{
 			WLog_Print(urbdrc->log, WLOG_WARN,
-			           "Could not find or redirect any usb devices by id %04x:%04x", idVendor, idProduct);
+			           "Could not find or redirect any usb devices by id %04x:%04x", idVendor,
+			           idProduct);
 		}
 
 		for (i = 0; i < num; i++)
@@ -694,6 +695,8 @@ static BOOL urbdrc_udevman_register_devices(UDEVMAN* udevman, const char* device
 			return FALSE;
 		}
 
+		WLog_DBG(TAG, "urbdrc_udevman_register_devices %x:%x (addr? %d)", id1, id2, add_by_addr);
+
 		if (add_by_addr)
 		{
 			add_device(&udevman->iface, DEVICE_ADD_FLAG_BUS | DEVICE_ADD_FLAG_DEV, (UINT8)id1,
@@ -759,16 +762,16 @@ static UINT urbdrc_udevman_parse_addin_args(UDEVMAN* udevman, const ADDIN_ARGV* 
 			const char* p = strchr(arg, ':');
 			if (p)
 				udevman->devices_vid_pid = p + 1;
-			else
-				udevman->flags = UDEVMAN_FLAG_ADD_BY_VID_PID;
+			udevman->flags = UDEVMAN_FLAG_ADD_BY_VID_PID;
+			WLog_DBG(TAG, "found udevman->devices_vid_pid: %s", p + 1);
 		}
 		else if (_strnicmp(arg, "addr", 4) == 0)
 		{
 			const char* p = strchr(arg, ':');
 			if (p)
 				udevman->devices_addr = p + 1;
-			else
-				udevman->flags = UDEVMAN_FLAG_ADD_BY_ADDR;
+			udevman->flags = UDEVMAN_FLAG_ADD_BY_ADDR;
+			WLog_DBG(TAG, "found udevman->devices_addr: %s", p + 1);
 		}
 		else if (strcmp(arg, "auto") == 0)
 		{
@@ -799,16 +802,20 @@ static UINT udevman_listener_created_callback(IUDEVMAN* iudevman)
 	UINT status;
 	UDEVMAN* udevman = (UDEVMAN*)iudevman;
 
+	WLog_DBG(TAG, "udevman_listener_created_callback");
 	if (udevman->devices_vid_pid)
 	{
+		WLog_DBG(TAG, "udevman->devices_vid_pid: %s", udevman->devices_vid_pid);
 		status = urbdrc_udevman_register_devices(udevman, udevman->devices_vid_pid, FALSE);
 		if (status != CHANNEL_RC_OK)
 			return status;
 	}
 
 	if (udevman->devices_addr)
+	{
+		WLog_DBG(TAG, "udevman->devices_addr: %s", udevman->devices_addr);
 		return urbdrc_udevman_register_devices(udevman, udevman->devices_addr, TRUE);
-
+	}
 	return CHANNEL_RC_OK;
 }
 
@@ -930,7 +937,7 @@ UINT freerdp_urbdrc_client_subsystem_entry(PFREERDP_URBDRC_SERVICE_ENTRY_POINTS 
 	udevman->next_device_id = BASE_USBDEVICE_NUM;
 	udevman->iface.plugin = pEntryPoints->plugin;
 	rc = libusb_init(&udevman->context);
-	
+
 	if (rc != LIBUSB_SUCCESS)
 		goto fail;
 
