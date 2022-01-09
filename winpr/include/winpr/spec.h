@@ -968,11 +968,13 @@ extern "C++"
 #if defined(_WIN32) || defined(__CYGWIN__)
 #ifdef __GNUC__
 #define DECLSPEC_EXPORT __attribute__((dllexport))
+#ifndef DECLSPEC_IMPORT
 #define DECLSPEC_IMPORT __attribute__((dllimport))
+#endif /* DECLSPEC_IMPORT */
 #else
 #define DECLSPEC_EXPORT __declspec(dllexport)
 #define DECLSPEC_IMPORT __declspec(dllimport)
-#endif
+#endif /* __GNUC__ */
 #else
 #if defined(__GNUC__) && __GNUC__ >= 4
 #define DECLSPEC_EXPORT __attribute__((visibility("default")))

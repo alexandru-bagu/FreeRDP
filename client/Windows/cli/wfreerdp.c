@@ -26,7 +26,6 @@
 #include <winpr/windows.h>
 
 #include <winpr/crt.h>
-#include <winpr/credui.h>
 
 #include <freerdp/freerdp.h>
 #include <freerdp/constants.h>
@@ -36,7 +35,7 @@
 #include <freerdp/client/channels.h>
 #include <freerdp/channels/channels.h>
 
-#include "resource.h"
+#include "../resource/resource.h"
 
 #include "wf_client.h"
 

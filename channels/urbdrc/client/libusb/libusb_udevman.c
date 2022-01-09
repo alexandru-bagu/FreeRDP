@@ -198,8 +198,7 @@ static size_t udevman_register_udevice(IUDEVMAN* idevman, BYTE bus_number, BYTE 
 		if (num == 0)
 		{
 			WLog_Print(urbdrc->log, WLOG_WARN,
-			           "Could not find or redirect any usb devices by id %04x:%04x", idVendor,
-			           idProduct);
+			           "Could not find or redirect any usb devices by id %04x:%04x", idVendor, idProduct);
 		}
 
 		for (i = 0; i < num; i++)
@@ -938,7 +937,7 @@ UINT freerdp_urbdrc_client_subsystem_entry(PFREERDP_URBDRC_SERVICE_ENTRY_POINTS 
 	udevman->next_device_id = BASE_USBDEVICE_NUM;
 	udevman->iface.plugin = pEntryPoints->plugin;
 	rc = libusb_init(&udevman->context);
-
+	
 	if (rc != LIBUSB_SUCCESS)
 		goto fail;
 

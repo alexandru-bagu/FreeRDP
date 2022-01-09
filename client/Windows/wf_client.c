@@ -26,7 +26,6 @@
 #include <winpr/windows.h>
 
 #include <winpr/crt.h>
-#include <winpr/credui.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -64,13 +63,22 @@
 
 #include "wf_client.h"
 
-#include "resource.h"
+#include "resource/resource.h"
 
 #define TAG CLIENT_TAG("windows")
 
 static BOOL wf_has_console(void)
 {
-	return _isatty(_fileno(stdin));
+#ifdef WITH_WIN_CONSOLE
+	int file = _fileno(stdin);
+	int tty = _isatty(file);
+#else
+	int file = -1;
+	int tty = 0;
+#endif
+
+	WLog_INFO(TAG, "Detected stdin=%d -> %s mode", file, tty ? "console" : "gui");
+	return tty;
 }
 
 static BOOL wf_end_paint(rdpContext* context)
